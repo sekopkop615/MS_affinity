@@ -55,3 +55,60 @@
     .risk-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
     .risk-legend .dot { width: 8px; height: 8px; border-radius: 50%; }
     .risk-legend .dot.low { background: var(--safe); }
+    .risk-legend .dot.med { background: var(--warn); }
+    .risk-legend .dot.high { background: var(--danger); }
+    .pagination { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; font-size: 0.85rem; }
+    .pagination button { min-width: 2rem; }
+    .table-wrap { overflow-x: auto; }    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }    th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }    th { color: var(--text-dim); font-weight: 500; }    td .mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; word-break: break-all; }
+    .tier-badge { display: inline-block; padding: 0.15rem 0.4rem; border-radius: 3px; font-weight: 600; }
+    .tier-badge.low { background: rgba(29, 209, 161, 0.2); color: var(--safe); }
+    .tier-badge.med { background: rgba(254, 202, 87, 0.2); color: var(--warn); }
+    .tier-badge.high { background: rgba(255, 107, 107, 0.2); color: var(--danger); }
+    .filter-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
+    .filter-row select { padding: 0.4rem 0.6rem; font-size: 0.85rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; }
+    .filter-row input[type="text"] { max-width: 220px; padding: 0.4rem 0.6rem; font-size: 0.85rem; }
+    .accordion { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .accordion-item { border-bottom: 1px solid var(--border); }
+    .accordion-item:last-child { border-bottom: none; }
+    .accordion-head { padding: 0.85rem 1rem; background: var(--bg-card); cursor: pointer; font-weight: 500; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
+    .accordion-head:hover { background: var(--bg-hover); }
+    .accordion-body { padding: 1rem 1.25rem; background: var(--bg); font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; }
+    .faq-list { list-style: none; }
+    .faq-list li { margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .faq-list li:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .faq-q { font-weight: 600; color: var(--text); margin-bottom: 0.4rem; }
+    .faq-a { color: var(--text-dim); font-size: 0.88rem; }
+    .reporters-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .reporters-list span { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; padding: 0.25rem 0.5rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--scan); }
+    .about-block { margin-bottom: 1rem; }
+    .about-block p { margin-bottom: 0.5rem; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .panel { animation: fadeIn 0.25s ease; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+    .stat-card:hover { animation: pulse 0.6s ease; }
+    @media (max-width: 640px) { .scan-row { grid-template-columns: 1fr; } table { font-size: 0.8rem; } .filter-row { flex-direction: column; align-items: stretch; } }
+  </style>
+</head>
+<body>  <div class="wrap">    <header>      <div>        <div class="logo">MS_affinity <span>× MonsterScan</span>
+</div>        <div class="tagline">Crypto scanner — risk scores and address flags on-chain.</div>      </div>      <div class="header-right">        <span id="walletAddr" class="addr" style="display:none;">
+</span>        <button type="button" class="btn primary" id="btnConnect">Connect</button>        <input type="text" id="contractAddr" placeholder="Contract (optional)" style="width:180px;padding:0.4rem;font-size:0.8rem;" />      </div>    </header>    <div class="hero">      <h1>MonsterScan Crypto Scanner</h1>      <p>Register tokens, submit address scans with risk tiers (0–10), and manage whitelist/blacklist. Reporters submit; keeper configures.</p>    </div>    <div class="stats">      <div class="stat-card">
+<div class="stat-label">Scans</div>
+<div class="stat-value" id="statScans">0</div>
+</div>      <div class="stat-card">
+<div class="stat-label">Tokens</div>
+<div class="stat-value" id="statTokens">0</div>
+</div>      <div class="stat-card">
+<div class="stat-label">Reporters</div>
+<div class="stat-value" id="statReporters">0</div>
+</div>      <div class="stat-card">
+<div class="stat-label">Whitelist</div>
+<div class="stat-value" id="statWl">0</div>
+</div>      <div class="stat-card">
+<div class="stat-label">Blacklist</div>
+<div class="stat-value" id="statBl">0</div>
+</div>    </div>    <section>      <h2>Scans</h2>      <div class="risk-legend">        <span>
+<i class="dot low">
+</i> Low (0–3)</span>        <span>
+<i class="dot med">
+</i> Medium (4–6)</span>        <span>
+<i class="dot high">
