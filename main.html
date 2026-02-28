@@ -169,3 +169,60 @@
       <div class="panel">
         <ol style="font-size:0.9rem;color:var(--text-dim);line-height:1.8;padding-left:1.25rem;">
           <li>The keeper deploys the MonsterScan contract (no constructor args). Keeper = msg.sender; report vault is set in source.</li>
+          <li>The keeper registers reporters via registerReporter(address). Only these addresses can submit scans.</li>
+          <li>Optionally the keeper registers categories via registerCategory(keccak256("Name")) and tokens via registerToken(tokenScanId, address, symbolHash).</li>
+          <li>The keeper may set risk thresholds per tier via setRiskThreshold(tier, value) and add/remove whitelist/blacklist entries.</li>
+          <li>Reporters call submitScan(scanId, target, riskTier, flagsHash) or submitScanWithCategory(..., categoryId) to record a scan.</li>
+          <li>Batch submission is available: submitScanBatch(scanIds, targets, riskTiers, flagsHashes) up to MSC_BATCH_LIMIT (64) per call.</li>
+          <li>Frontends and indexers query scans via getScanIdsPaginated(offset, limit), getScan(scanId), addressStatus(target), and related views.</li>
+          <li>The report vault can receive ETH (receive()); only the vault address can call withdrawVault() to pull funds out.</li>
+          <li>The keeper can pause/unpause the contract; when paused, no new scans or list changes (except withdraw and unpause).</li>
+        </ol>
+      </div>
+    </section>
+
+    <footer>      <p>MS_affinity — MonsterScan crypto scanner. Not audited; use at your own risk.</p>      <p style="margin-top:0.5rem;font-size:0.75rem;">Scans · Tokens · Reporters · Whitelist · Blacklist · Risk tiers 0–10</p>    </footer>
+
+    <section>
+      <h2>Contract API reference</h2>
+      <div class="panel">
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:0.5rem;">Main view and write functions (MonsterScan.sol).</p>
+        <ul style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--text-dim);line-height:1.6;list-style:none;padding:0;">
+          <li>getScan(scanId)</li>
+          <li>getScanTarget(scanId)</li>
+          <li>getScanRiskTier(scanId)</li>
+          <li>getScanFlagsHash(scanId)</li>
+          <li>getScanReporter(scanId)</li>
+          <li>getScanBlock(scanId)</li>
+          <li>scanExists(scanId)</li>
+          <li>targetScanCount(target)</li>
+          <li>getTargetScanAt(target, index)</li>
+          <li>isWhitelisted(target)</li>
+          <li>isBlacklisted(target)</li>
+          <li>isReporter(addr)</li>
+          <li>getRiskThreshold(riskTier)</li>
+          <li>vaultBalance()</li>
+          <li>scanIdsLength()</li>
+          <li>getScanIdAt(index)</li>
+          <li>getTokenAt(index)</li>
+          <li>tokenRegistered(tokenScanId)</li>
+          <li>getTokenAddress(tokenScanId)</li>
+          <li>getScanIdsPaginated(offset, limit)</li>
+          <li>getScansBatch(scanIds)</li>
+          <li>exceedsThreshold(scanId, riskTier)</li>
+          <li>addressStatus(target)</li>
+          <li>whitelistLength()</li>
+          <li>blacklistLength()</li>
+          <li>getWhitelistAt(index)</li>
+          <li>getBlacklistAt(index)</li>
+          <li>getScanCategory(scanId)</li>
+          <li>getCategoryName(categoryId)</li>
+          <li>getCategoryScanCount(categoryId)</li>
+          <li>getCategoryScanAt(categoryId, index)</li>
+          <li>deployBlockNumber()</li>
+          <li>getKeeper()</li>
+          <li>getVault()</li>
+          <li>getTargetScansPaginated(target, offset, limit)</li>
+          <li>isHighRisk(scanId)</li>
+          <li>getGlobalStats()</li>
+          <li>hasAnyFlag(target)</li>
