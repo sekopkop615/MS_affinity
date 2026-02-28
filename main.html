@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MS_affinity — MonsterScan Crypto Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {      --bg: #0a0c10;      --bg-card: #0f1218;      --bg-hover: #161b24;      --border: #252a35;      --scan: #00d4aa;      --scan-dim: #00b894;      --warn: #feca57;      --danger: #ff6b6b;      --safe: #1dd1a1;      --text: #e4e6eb;      --text-dim: #7f8c9a;      --glow: rgba(0, 212, 170, 0.15);    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 1.5rem; }    header {      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;      padding: 1rem 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;    }
+    .logo { font-weight: 700; font-size: 1.6rem; color: var(--scan); letter-spacing: 0.04em; }
+    .logo span { color: var(--text-dim); }
+    .tagline { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem; }
+    .header-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .addr { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--safe); max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+    .btn {      font-family: 'IBM Plex Sans', sans-serif; font-weight: 500; padding: 0.5rem 1rem;      border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; border-radius: 6px; font-size: 0.9rem;    }
+    .btn:hover { border-color: var(--scan-dim); color: var(--scan); }
+    .btn.primary { background: var(--scan); border-color: var(--scan); color: var(--bg); }
+    .btn.primary:hover { box-shadow: 0 0 16px var(--glow); }
+    .btn.small { padding: 0.35rem 0.7rem; font-size: 0.85rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+    .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--scan); font-weight: 500; }    section { margin-bottom: 1.75rem; }    h2 { font-size: 1.1rem; color: var(--text); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); }
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
+    .panel h3 { font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text); }
+    .form-row { margin-bottom: 0.75rem; }
+    .form-row label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.25rem; }
+    .form-row input, .form-row select {      width: 100%; max-width: 360px; padding: 0.45rem 0.65rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem;      background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px;    }
+    .form-row input:focus { outline: none; border-color: var(--scan); }
+    .msg { font-size: 0.85rem; margin-top: 0.5rem; padding: 0.45rem; border-radius: 4px; }
+    .msg.ok { background: rgba(29, 209, 161, 0.12); color: var(--safe); border: 1px solid rgba(29, 209, 161, 0.3); }
+    .msg.err { background: rgba(255, 107, 107, 0.12); color: var(--danger); border: 1px solid rgba(255, 107, 107, 0.3); }
+    .scan-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .scan-row {      display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 0.75rem;      padding: 0.6rem 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem;    }
+    .scan-row .target { font-family: 'IBM Plex Mono', monospace; font-size: 0.8rem; color: var(--text); word-break: break-all; }
+    .scan-row .tier { font-weight: 600; }
+    .scan-row .tier.low { color: var(--safe); }
+    .scan-row .tier.med { color: var(--warn); }
+    .scan-row .tier.high { color: var(--danger); }
+    .scan-row .id { font-size: 0.75rem; color: var(--text-dim); }
+    .address-status { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-top: 0.5rem; }
+    .badge { padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 4px; }
+    .badge.wl { background: rgba(29, 209, 161, 0.2); color: var(--safe); }
+    .badge.bl { background: rgba(255, 107, 107, 0.2); color: var(--danger); }
+    .badge.none { background: var(--border); color: var(--text-dim); }
+    .hero { text-align: center; padding: 1.75rem 1rem; margin-bottom: 1.5rem; background: linear-gradient(180deg, rgba(0,212,170,0.06) 0%, transparent 100%); border: 1px solid var(--border); border-radius: 8px; }
+    .hero h1 { font-size: 1.4rem; color: var(--scan); margin-bottom: 0.4rem; }
+    .hero p { color: var(--text-dim); font-size: 0.9rem; }    footer { text-align: center; padding: 1.5rem 0; font-size: 0.78rem; color: var(--text-dim); border-top: 1px solid var(--border); margin-top: 1.5rem; }
+    .risk-legend { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem; margin-bottom: 0.75rem; }
+    .risk-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .risk-legend .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .risk-legend .dot.low { background: var(--safe); }
