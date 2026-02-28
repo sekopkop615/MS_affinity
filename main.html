@@ -283,3 +283,60 @@
 <span class="tier-badge ${riskClass(s.riskTier)}">${s.riskTier}</span>
 </td>            <td style="color:var(--text-dim);">${s.reporter ? (s.reporter.slice(0,8)+'…') : '—'}</td>          </tr>        `).join('');        list.innerHTML = slice.map(s => `          <div class="scan-row">            <div>
 <span class="target">${s.target}</span>
+<div class="id">${s.scanId.slice(0, 16)}…</div>
+</div>            <span class="tier ${riskClass(s.riskTier)}">${s.riskTier}</span>            <span style="color:var(--text-dim);">${s.reporter ? 'Reporter' : ''}</span>          </div>        `).join('');        const maxPage = Math.max(0, Math.ceil(total / SCAN_PAGE_SIZE) - 1);        if (scanPage > maxPage) scanPage = maxPage;        document.getElementById('scanPageInfo').textContent = 'Page ' + (scanPage + 1) + ' of ' + Math.ceil(total / SCAN_PAGE_SIZE);      }      document.getElementById('scanPrev')?.addEventListener('click', () => { scanPage = Math.max(0, scanPage - 1); renderScans(); });      document.getElementById('scanNext')?.addEventListener('click', () => { const f = getFilteredScans(); const maxP = Math.ceil(f.length / SCAN_PAGE_SIZE) - 1; scanPage = Math.min(maxP, scanPage + 1); renderScans(); });      document.getElementById('btnApplyFilter')?.addEventListener('click', () => {        filterTierValue = document.getElementById('filterTier').value || '';        filterTargetValue = (document.getElementById('filterTarget').value || '').trim();        scanPage = 0;        renderScans();      });      function showMsg(elId, text, ok) {        const el = document.getElementById(elId);        el.textContent = text;        el.className = 'msg ' + (ok ? 'ok' : 'err');        el.style.display = 'block';        setTimeout(() => { el.style.display = 'none'; }, 4000);      }      document.getElementById('btnConnect').addEventListener('click', () => {        if (state.wallet) {          state.wallet = null;          document.getElementById('walletAddr').style.display = 'none';          document.getElementById('btnConnect').textContent = 'Connect';        } else {          state.wallet = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');          document.getElementById('walletAddr').textContent = state.wallet.slice(0, 10) + '…' + state.wallet.slice(-6);          document.getElementById('walletAddr').style.display = 'inline';          document.getElementById('btnConnect').textContent = 'Disconnect';        }      });      document.getElementById('btnLookup').addEventListener('click', () => {        const addr = document.getElementById('lookupAddr').value.trim();        const res = document.getElementById('lookupResult');        if (!addr) { res.innerHTML = '<span class="badge none">Enter address</span>'; return; }        const wl = state.whitelist.has(addr);        const bl = state.blacklist.has(addr);        const count = state.scans.filter(s => s.target === addr).length;        res.innerHTML = `          ${wl ? '<span class="badge wl">Whitelisted</span>' : ''}          ${bl ? '<span class="badge bl">Blacklisted</span>' : ''}          ${!wl && !bl ? '<span class="badge none">No list</span>' : ''}          <span style="color:var(--text-dim);">Scans: ${count}</span>        `;      });      document.getElementById('btnSubmitScan').addEventListener('click', async () => {        const scanIdRaw = document.getElementById('scanId').value.trim() || 'scan_' + Date.now();        const target = document.getElementById('scanTarget').value.trim();        const tier = parseInt(document.getElementById('scanTier').value, 10) || 0;        if (!target || target.length < 40) { showMsg('scanMsg', 'Enter valid target address', false); return; }        if (tier < 0 || tier > MAX_TIER) { showMsg('scanMsg', 'Risk tier 0–10', false); return; }        const scanId = await sha256(scanIdRaw);        if (state.scans.some(s => s.scanId === scanId)) { showMsg('scanMsg', 'Scan ID already exists', false); return; }        state.scans.push({ scanId, target, riskTier: tier, reporter: state.wallet || 'demo' });        renderStats();        renderScans();        showMsg('scanMsg', 'Scan submitted. Risk tier ' + tier + '.', true);      });      document.getElementById('btnWl').addEventListener('click', () => {        const addr = document.getElementById('flagAddr').value.trim();        if (!addr) { showMsg('flagMsg', 'Enter address', false); return; }        state.whitelist.add(addr);        state.blacklist.delete(addr);        renderStats();        showMsg('flagMsg', 'Added to whitelist.', true);      });      document.getElementById('btnBl').addEventListener('click', () => {        const addr = document.getElementById('flagAddr').value.trim();        if (!addr) { showMsg('flagMsg', 'Enter address', false); return; }        state.blacklist.add(addr);        state.whitelist.delete(addr);        renderStats();        showMsg('flagMsg', 'Added to blacklist.', true);      });      document.getElementById('btnRegisterToken').addEventListener('click', async () => {        const symbol = document.getElementById('tokenSymbol').value.trim() || 'TOKEN';        const address = document.getElementById('tokenAddress').value.trim();        if (!address || address.length < 40) { showMsg('tokenMsg', 'Enter valid token address', false); return; }        const tokenScanId = await sha256(symbol);        if (state.tokens.some(t => t.tokenScanId === tokenScanId)) { showMsg('tokenMsg', 'Token already registered', false); return; }        state.tokens.push({ tokenScanId, address, symbol });        renderTokens();        renderStats();        showMsg('tokenMsg', 'Token registered: ' + symbol, true);      });      document.getElementById('btnAddReporter')?.addEventListener('click', () => {        const addr = document.getElementById('reporterAddr').value.trim();        if (!addr || addr.length < 40) { showMsg('reporterMsg', 'Enter valid address', false); return; }        state.reporters.add(addr);        renderReporters();        renderStats();        showMsg('reporterMsg', 'Reporter added.', true);      });      document.getElementById('btnRemoveReporter')?.addEventListener('click', () => {        const addr = document.getElementById('reporterAddr').value.trim();        if (!addr) { showMsg('reporterMsg', 'Enter address to remove', false); return; }        if (state.reporters.has('__demo__') && state.reporters.size <= 1) { showMsg('reporterMsg', 'Keep at least one reporter.', false); return; }        state.reporters.delete(addr);        renderReporters();        renderStats();        showMsg('reporterMsg', 'Reporter removed.', true);      });      function renderReporters() {        const el = document.getElementById('reportersList');        if (!el) return;        el.innerHTML = Array.from(state.reporters).map(r => `<span>${r === '__demo__' ? 'demo' : r.slice(0, 10) + '…' + r.slice(-6)}</span>`).join('');      }      const thresholds = { 1: 100, 2: 200, 3: 500, 5: 1000, 8: 2000 };      function renderThresholds() {        const el = document.getElementById('thresholdList');        el.innerHTML = Object.entries(thresholds).map(([tier, val]) => `<span style="color:var(--scan);">Tier ${tier}: ${val}</span>`).join('');      }      function renderTokens() {        const el = document.getElementById('tokenList');        el.innerHTML = state.tokens.length === 0 ? '<p style="color:var(--text-dim);font-size:0.9rem;">No tokens registered.</p>' : state.tokens.map(t => `          <div class="scan-row">
+<div>
+<span class="target">${t.address}</span>
+<div class="id">${t.symbol || t.tokenScanId?.slice(0,16)}…</div>
+</div>
+</div>        `).join('');      }      renderThresholds();      renderTokens();      renderReporters();      renderStats();      renderScans();    })();
+  </script>
+  <!-- MS_affinity ref 1 -->
+  <!-- MS_affinity ref 2 -->
+  <!-- MS_affinity ref 3 -->
+  <!-- MS_affinity ref 4 -->
+  <!-- MS_affinity ref 5 -->
+  <!-- MS_affinity ref 6 -->
+  <!-- MS_affinity ref 7 -->
+  <!-- MS_affinity ref 8 -->
+  <!-- MS_affinity ref 9 -->
+  <!-- MS_affinity ref 10 -->
+  <!-- MS_affinity ref 11 -->
+  <!-- MS_affinity ref 12 -->
+  <!-- MS_affinity ref 13 -->
+  <!-- MS_affinity ref 14 -->
+  <!-- MS_affinity ref 15 -->
+  <!-- MS_affinity ref 16 -->
+  <!-- MS_affinity ref 17 -->
+  <!-- MS_affinity ref 18 -->
+  <!-- MS_affinity ref 19 -->
+  <!-- MS_affinity ref 20 -->
+  <!-- MS_affinity ref 21 -->
+  <!-- MS_affinity ref 22 -->
+  <!-- MS_affinity ref 23 -->
+  <!-- MS_affinity ref 24 -->
+  <!-- MS_affinity ref 25 -->
+  <!-- MS_affinity ref 26 -->
+  <!-- MS_affinity ref 27 -->
+  <!-- MS_affinity ref 28 -->
+  <!-- MS_affinity ref 29 -->
+  <!-- MS_affinity ref 30 -->
+  <!-- MS_affinity ref 31 -->
+  <!-- MS_affinity ref 32 -->
+  <!-- MS_affinity ref 33 -->
+  <!-- MS_affinity ref 34 -->
+  <!-- MS_affinity ref 35 -->
+  <!-- MS_affinity ref 36 -->
+  <!-- MS_affinity ref 37 -->
+  <!-- MS_affinity ref 38 -->
+  <!-- MS_affinity ref 39 -->
+  <!-- MS_affinity ref 40 -->
+  <!-- MS_affinity ref 41 -->
+  <!-- MS_affinity ref 42 -->
+  <!-- MS_affinity ref 43 -->
+  <!-- MS_affinity ref 44 -->
+  <!-- MS_affinity ref 45 -->
+  <!-- MS_affinity ref 46 -->
+  <!-- MS_affinity ref 47 -->
+  <!-- MS_affinity ref 48 -->
+  <!-- MS_affinity ref 49 -->
