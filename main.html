@@ -226,3 +226,60 @@
           <li>isHighRisk(scanId)</li>
           <li>getGlobalStats()</li>
           <li>hasAnyFlag(target)</li>
+          <li>tokenScanIdsLength()</li>
+          <li>getTokenScanIdAt(index)</li>
+          <li>getScanSummary(scanId)</li>
+          <li>getMaxRiskTier()</li>
+          <li>getMaxScans()</li>
+          <li>getBatchLimit()</li>
+          <li>getViewBatch()</li>
+          <li>getScanDomain()</li>
+          <li>getReporterRole()</li>
+          <li>getTokenNamespace()</li>
+          <li>getMaxCategories()</li>
+          <li>isLive()</li>
+          <li>getScanIdsRange(fromIdx, toIdx)</li>
+          <li>getWhitelistPaginated(offset, limit)</li>
+          <li>getBlacklistPaginated(offset, limit)</li>
+          <li>getTokenScanIdsPaginated(offset, limit)</li>
+          <li>allScanIds()</li>
+          <li>allTokenScanIds()</li>
+          <li>getScansByReporter(reporter, offset, limit)</li>
+          <li>getRiskTierCounts()</li>
+          <li>getScanIdsByRiskTier(riskTier, offset, limit)</li>
+          <li>totalScansForTarget(target)</li>
+          <li>scanReporter(scanId)</li>
+          <li>scanFlags(scanId)</li>
+          <li>scanRisk(scanId)</li>
+          <li>scanAtBlock(scanId)</li>
+          <li>scanTarget(scanId)</li>
+          <li>categoryScanIdsLength(categoryId)</li>
+          <li>categoryNameHash(categoryId)</li>
+          <li>scanCategoryId(scanId)</li>
+          <li>getCategoryScanIdAt(categoryId, index)</li>
+          <li>submitScan(scanId, target, riskTier, flagsHash)</li>
+          <li>submitScanWithCategory(scanId, target, riskTier, flagsHash, categoryId)</li>
+          <li>submitScanBatch(scanIds, targets, riskTiers, flagsHashes)</li>
+          <li>registerCategory(nameHash)</li>
+          <li>registerToken(tokenScanId, token, symbolHash)</li>
+          <li>addToWhitelist(target)</li>
+          <li>removeFromWhitelist(target)</li>
+          <li>addToBlacklist(target)</li>
+          <li>removeFromBlacklist(target)</li>
+          <li>addToWhitelistBatch(targets)</li>
+          <li>addToBlacklistBatch(targets)</li>
+          <li>setRiskThreshold(riskTier, value)</li>
+          <li>registerReporter(reporter)</li>
+          <li>revokeReporter(reporter)</li>
+          <li>pause()</li>
+          <li>unpause()</li>
+          <li>withdrawVault()</li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
+  <script>    (function () {      const toHex = (s) => {        const buf = new TextEncoder().encode(s);        return Array.from(new Uint8Array([].concat(...[...buf].map(c => [c]))));      };      async function sha256(s) {        const buf = new TextEncoder().encode(s);        const hash = await crypto.subtle.digest('SHA-256', buf);        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');      }      const MAX_TIER = 10;      let state = {        scans: [],        whitelist: new Set(),        blacklist: new Set(),        reporters: new Set(),        tokens: [],        wallet: null      };      state.reporters.add('__demo__');      function riskClass(tier) {        if (tier <= 3) return 'low';        if (tier <= 6) return 'med';        return 'high';      }      function renderStats() {        document.getElementById('statScans').textContent = state.scans.length;        document.getElementById('statTokens').textContent = state.tokens.length;        document.getElementById('statReporters').textContent = state.reporters.size;        document.getElementById('statWl').textContent = state.whitelist.size;        document.getElementById('statBl').textContent = state.blacklist.size;      }      const SCAN_PAGE_SIZE = 10;      let scanPage = 0;      let filterTierValue = '';      let filterTargetValue = '';      function getFilteredScans() {        return state.scans.filter(s => {          if (filterTierValue && riskClass(s.riskTier) !== filterTierValue) return false;          if (filterTargetValue && !s.target.toLowerCase().includes(filterTargetValue.toLowerCase())) return false;          return true;        });      }      function renderScans() {        const filtered = getFilteredScans();        const list = document.getElementById('scanList');        const total = filtered.length;        if (total === 0) {          list.innerHTML = '<p style="color:var(--text-dim);font-size:0.9rem;">No scans match. Submit one or change filters.</p>';          document.getElementById('scanTable').style.display = 'none';          document.getElementById('scanPagination').style.display = 'none';          return;        }        document.getElementById('scanTable').style.display = 'table';        document.getElementById('scanPagination').style.display = 'flex';        const start = scanPage * SCAN_PAGE_SIZE;        const slice = filtered.slice(start, start + SCAN_PAGE_SIZE);        const tbody = document.getElementById('scanTableBody');        tbody.innerHTML = slice.map(s => `          <tr>            <td class="mono">${s.scanId.slice(0, 20)}…</td>            <td class="mono">${s.target.slice(0, 12)}…${s.target.slice(-6)}</td>            <td>
+<span class="tier-badge ${riskClass(s.riskTier)}">${s.riskTier}</span>
+</td>            <td style="color:var(--text-dim);">${s.reporter ? (s.reporter.slice(0,8)+'…') : '—'}</td>          </tr>        `).join('');        list.innerHTML = slice.map(s => `          <div class="scan-row">            <div>
+<span class="target">${s.target}</span>
